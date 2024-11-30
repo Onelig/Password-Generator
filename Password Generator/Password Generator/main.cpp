@@ -128,17 +128,53 @@ int main(int, char**)
     ImGui::StyleColorsDark();
     SetupImGuiStyle();
 
-
-
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
+    // window flags
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoCollapse;
+    window_flags |= ImGuiWindowFlags_NoResize;
+
     // Load Fonts
-    
+    ImFontConfig font_cfg, font_cfg_2;
+    font_cfg.FontDataOwnedByAtlas = false;
+
+    io.Fonts->AddFontFromMemoryTTF(LoveFont, LoveFont_size, 17.0f, &font_cfg); // basical font
+
+    font_cfg_2.PixelSnapH = true;
+    font_cfg_2.FontDataOwnedByAtlas = false;
+    ImFont* myIconFont = io.Fonts->AddFontFromMemoryTTF(dripicons, dripicons_size, 19.f, &font_cfg_2);
+
+    // Password tools
+    int value = 32;
+    bool include_symb = true;
+    bool include_numbers = true;
+    bool include_lower_letters = true;
+    bool include_upper_letters = true;
+    bool include_similar_letters = true;
+    password_generator pass_gen;
+    std::string password;
+
+    // Language Tools
+    std::unique_ptr<Language> lang = std::make_unique<English>();;
+
+    // Copying tools
+    clipboardxx::clipboard clipboard;
+
+    // Notification tools
+    WinToastLib::WinToast::instance()->setAppName(L"Password Generator");
+    WinToastLib::WinToast::instance()->setAppUserModelId(L"Password Generator");
+    WinToastLib::WinToast::instance()->initialize();
+    WinToastLib::WinToastTemplate templ(WinToastLib::WinToastTemplate::Text02);
+    templ.setTextField(L"Password copied!", WinToastLib::WinToastTemplate::FirstLine);
+    templ.setTextField(L"The password has been successfully copied to your clipboard.", WinToastLib::WinToastTemplate::SecondLine);
 
     // Main loop
     bool done = false;
+    bool isShow = true;
+
     while (!done)
     {
         MSG msg;
