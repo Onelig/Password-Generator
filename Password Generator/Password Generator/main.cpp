@@ -6,6 +6,8 @@
 #include "LoveFont.h"
 #include "dripicons.h"
 #include <Windows.h>
+#include "English.hpp"
+#include "Finnish.hpp"
 
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
