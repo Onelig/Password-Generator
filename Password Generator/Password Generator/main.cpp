@@ -9,6 +9,7 @@
 #include "English.hpp"
 #include "Finnish.hpp"
 #include "wintoastlib.h"
+#include "password_generator.hpp"
 
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
