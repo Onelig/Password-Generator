@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include "English.hpp"
 #include "Finnish.hpp"
+#include "wintoastlib.h"
 
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
