@@ -3,6 +3,9 @@
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <tchar.h>
+#include "LoveFont.h"
+#include "dripicons.h"
+#include <Windows.h>
 
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
