@@ -4,7 +4,7 @@
 A simple and user-friendly password generator with a user interface built on **ImGui**. It allows flexible customization of password parameters and length.
 
 ## Features
-- Random password generation.
+- Random password generation. 
 - Customization of password parameters:
   - Enable/disable uppercase letters.
   - Use lowercase letters.
