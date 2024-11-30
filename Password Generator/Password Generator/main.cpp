@@ -150,6 +150,7 @@ int main(int, char**)
     // window flags
     ImGuiWindowFlags window_flags = 0;
     window_flags |= ImGuiWindowFlags_NoCollapse;
+
     window_flags |= ImGuiWindowFlags_NoResize;
 
     // Load Fonts
@@ -190,7 +191,7 @@ int main(int, char**)
     bool done = false;
     bool isShow = true;
 
-    while (!done)
+    while (!done && isShow)
     {
         // Poll and handle messages (inputs, window resize, etc.)
         MSG msg;
