@@ -11,6 +11,8 @@
 #include "password_generator.hpp"
 #include "clipboardxx.hpp"
 
+#define S_p "Include Uppercase Letters(A - Z)                       "
+
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -93,6 +95,19 @@ void SetupImGuiStyle()
     style.WindowPadding = ImVec2(20, 20);
     style.GrabRounding = 8.0f;
 }
+
+class CustomHandler : public WinToastLib::IWinToastHandler {
+public:
+    void toastActivated() const {
+    }
+
+    void toastActivated(int actionIndex) const {  }
+
+    void toastDismissed(WinToastDismissalReason state) const {
+    }
+
+    void toastFailed() const {}
+};
 
 // Main code
 int main(int, char**)
@@ -177,6 +192,7 @@ int main(int, char**)
 
     while (!done)
     {
+        // Poll and handle messages (inputs, window resize, etc.)
         MSG msg;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
@@ -208,11 +224,115 @@ int main(int, char**)
         // Start the Dear ImGui frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
+
         ImGui::NewFrame();
 
-        
+
+        {
+            ImGui::Begin("Password Generator", &isShow, window_flags);
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPos().x + 360);
+            ImGui::SetCursorPosY(ImGui::GetCursorPos().y - 10);
+            if (ImGui::BeginPopupContextItem("my popup"))
+            {
+                if (ImGui::Selectable("Enlish")) { lang = std::make_unique<English>(); }
+                if (ImGui::Selectable("Finnish")) { lang = std::make_unique<Finnish>(); }
+                templ.setTextField(lang->first_text(), WinToastLib::WinToastTemplate::FirstLine);
+                templ.setTextField(lang->second_text(), WinToastLib::WinToastTemplate::SecondLine);
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::Button("Lang"))
+            {
+                ImGui::OpenPopup("my popup");
+            }
+
+            if (value > pass_gen.GetMaxSize())
+            {
+                value = pass_gen.GetMaxSize();
+            }
+            ImGui::SliderInt(lang->password_size(), &value, 0, pass_gen.GetMaxSize()); pass_gen.SetActualSize(value);
+            ImGui::Separator();
+
+            ImVec2 cursorPos = ImGui::GetCursorPos();
+            ImGui::Text(lang->include_symbs());
+            cursorPos.x += ImGui::CalcTextSize(S_p).x + 20;
+            ImGui::SetCursorPos(cursorPos);
+            ImGui::Checkbox("##1", &include_symb);
+            pass_gen.SetIncludeSymb(include_symb);
 
 
+            cursorPos = ImGui::GetCursorPos();
+            ImGui::Text(lang->include_nums());
+            cursorPos.x += ImGui::CalcTextSize(S_p).x + 20;
+            ImGui::SetCursorPos(cursorPos);
+            ImGui::Checkbox("##2", &include_numbers);
+            pass_gen.SetIncludeNumbers(include_numbers);
+
+            cursorPos = ImGui::GetCursorPos();
+            ImGui::Text(lang->include_lower_letters());
+            cursorPos.x += ImGui::CalcTextSize(S_p).x + 20;
+            ImGui::SetCursorPos(cursorPos);
+            ImGui::Checkbox("##3", &include_lower_letters);
+            pass_gen.SetIncludeLowerLetters(include_lower_letters);
+
+
+            cursorPos = ImGui::GetCursorPos();
+            ImGui::Text(lang->include_upper_letters());
+            cursorPos.x += ImGui::CalcTextSize(S_p).x + 20;
+            ImGui::SetCursorPos(cursorPos);
+            ImGui::Checkbox("##4", &include_upper_letters);
+            pass_gen.SetIncludeUpperLetters(include_upper_letters);
+
+
+            cursorPos = ImGui::GetCursorPos();
+            ImGui::Text(lang->include_similar_letters());
+            cursorPos.x += ImGui::CalcTextSize(S_p).x + 20;
+            ImGui::SetCursorPos(cursorPos);
+            ImGui::Checkbox("##5", &include_similar_letters);
+            pass_gen.SetIncludeSimilarLetters(include_similar_letters);
+            pass_gen.update_show_password_p();
+            if (ImGui::Button(lang->generate_password(), ImVec2(400, 50)))
+            {
+                password = pass_gen.CreatePassword().c_str();
+
+            }
+
+            ImGui::Spacing();
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            ImVec2 textSize = ImGui::CalcTextSize(password.c_str());
+            cursorPos = ImGui::GetCursorPos();
+            if (!password.empty())
+            {
+                cursorPos.x = windowSize.x - 35;
+                cursorPos.y -= 10;
+                ImGui::SetCursorPos(cursorPos);
+                ImGui::PushFont(myIconFont);
+                if (ImGui::Button("7", ImVec2(30, 30))) // copy button(font)
+                {
+                    clipboard << password;
+                    WinToastLib::WinToast::instance()->showToast(templ, new CustomHandler());
+                }
+                ImGui::PopFont();
+            }
+            ImGui::SetCursorPosY(cursorPos.y);
+            bool needsScrollbar = textSize.x > (windowSize.x - 70);
+            if (needsScrollbar)
+            {
+                ImGui::BeginChild("ScrollableText", ImVec2(windowSize.x - 65, 35), false, ImGuiWindowFlags_HorizontalScrollbar);
+                ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+                ImGui::TextUnformatted(password.c_str());
+                ImGui::EndChild();
+            }
+            else
+            {
+                ImGui::SetCursorPosX((windowSize.x - textSize.x) * 0.5f);
+                ImGui::TextUnformatted(password.c_str());
+            }
+
+            ImGui::End();
+        }
 
         // Rendering
         ImGui::Render();
@@ -227,7 +347,6 @@ int main(int, char**)
 
         // Present
         HRESULT hr = g_pSwapChain->Present(1, 0);   // Present with vsync
-        //HRESULT hr = g_pSwapChain->Present(0, 0); // Present without vsync
         g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
     }
 
